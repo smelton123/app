@@ -13,6 +13,8 @@ set(HEADERS
     common/vkConsole.h
     common/vkHandle.h
     common/vkSignals.h
+    common/vkStorage.h
+    common/vkUser.h
     common/log/vkLog.h
     io/vkFsWatcher.h
     vkServer.h
@@ -24,6 +26,7 @@ set(SRC
     common/vkConsole.cpp
     common/vkHandle.cpp
     common/vkSignals.cpp
+    common/vkUser.cpp
     common/log/vkLog.cpp
     io/vkFsWatcher.cpp
     vkServer.cpp
