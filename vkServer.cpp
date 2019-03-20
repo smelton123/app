@@ -50,15 +50,15 @@ void Server::create(uv_stream_t *server, int status)
         return;
     }
 
-    //Miner *miner = new Miner(m_ctx, m_version == 6, m_port);
-    //if (!miner) {
-    //    return;
-    //}
+    User *user = new User(m_version == 6, m_port);
+    if (!user) {
+        return;
+    }
 
-    //if (!miner->accept(server)) {
-    //    delete miner;
-    //    return;
-    //}
+    if (!user->accept(server)) {
+        delete user;
+        return;
+    }
 
     //ConnectionEvent::start(miner, m_port);
 }

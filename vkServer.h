@@ -2,6 +2,7 @@
 #include <string>
 #include <uv.h>
 #include "vkBindHost.h"
+#include "common/vkUser.h"
 
 using namespace std;
 
