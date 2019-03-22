@@ -23,6 +23,8 @@ FsWatcher::~FsWatcher()
 {
     Handle::close(m_timer);
     Handle::close(m_fsEvent);
+    delete m_fsEvent;
+    delete m_timer;
 }
 
 
