@@ -16,6 +16,7 @@ set(HEADERS
     common/vkSignals.h
     common/vkStorage.h
     common/vkUser.h
+    common/vkMd5sum.h
     common/log/vkLog.h
     common/log/vkBasicLog.h
     common/log/vkSysLog.h
@@ -31,6 +32,7 @@ set(SRC
     common/vkHandle.cpp
     common/vkSignals.cpp
     common/vkUser.cpp
+    common/vkMd5sum.cpp
     common/log/vkLog.cpp
     common/log/vkBasicLog.cpp
     common/log/vkSysLog.cpp
