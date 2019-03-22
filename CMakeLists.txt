@@ -3,6 +3,7 @@ project(app)
 add_definitions(-std=gnu++0x)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 find_package(UV REQUIRED)
+find_package(CURL REQUIRED)
 
 set(EXTRA_LIBS pthread rt)
 set(HEADERS
@@ -41,5 +42,6 @@ set(SRC
     vkBindHost.cpp
     )
 include_directories(${UV_INCLUDE_DIR})
+include_directories(${CURL_INCLUDE_DIRS})
 add_executable(${CMAKE_PROJECT_NAME} ${SRC} ${HEADERS})
-target_link_libraries(${CMAKE_PROJECT_NAME} ${UV_LIBRARIES} ${EXTRA_LIBS})
+target_link_libraries(${CMAKE_PROJECT_NAME} ${UV_LIBRARIES} ${CURL_LIBRARIES} ${EXTRA_LIBS})
