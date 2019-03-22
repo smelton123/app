@@ -6,6 +6,7 @@ find_package(UV REQUIRED)
 
 set(EXTRA_LIBS pthread rt)
 set(HEADERS
+    third-party/md5/md5.h
     common/interfaces/vkILogBackend.h
     common/interfaces/vkIConsoleListener.h
     common/interfaces/vkISignalListener.h
@@ -23,6 +24,7 @@ set(HEADERS
     vkBindHost.h
 )
 set(SRC 
+    third-party/md5/md5c.cpp
     main.cpp
     app.cpp 
     common/vkConsole.cpp
