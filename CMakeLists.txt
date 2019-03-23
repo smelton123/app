@@ -22,6 +22,7 @@ set(HEADERS
     common/log/vkBasicLog.h
     common/log/vkSysLog.h
     common/cpu.h
+    common/vkSingleApp.h
     io/vkFsWatcher.h
     vkServer.h
     vkBindHost.h
@@ -39,6 +40,7 @@ set(SRC
     common/log/vkBasicLog.cpp
     common/log/vkSysLog.cpp
     common/cpu.cpp
+    common/vkSingleApp.cpp
     io/vkFsWatcher.cpp
     vkServer.cpp
     vkBindHost.cpp

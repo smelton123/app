@@ -5,6 +5,7 @@
 #include <signal.h>
 #include <errno.h>
 #include <unistd.h>
+#include "common/vkSingleApp.h"
 #include "app.h"
 
 
@@ -99,7 +100,14 @@ void App::onConsoleCommand(char command)
 int App::exec(void)
 {
     m_signals = new Signals(this);
+    
     gotoBackground();
+
+    // check single instance run.
+    if (SingleApp::i()->isRunning()){
+        return -1;
+    }
+
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
     return r;
@@ -116,6 +124,7 @@ App::~App(void)
     uv_tty_reset_mode();
     delete m_console;
     delete m_signals;
+    SingleApp::releaseInst();
 }
 
 
