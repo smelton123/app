@@ -28,6 +28,7 @@ Signals::~Signals()
 {
     for (size_t i = 0; i < kSignalsCount; ++i) {
         Handle::close(m_signals[i]);
+        delete m_signals[i];
     }
 }
 
