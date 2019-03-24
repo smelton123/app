@@ -21,6 +21,26 @@ typedef enum result_t {
   FAILURE = -1, 
 } result_t;
 
+typedef struct cputime_t 
+{
+  uint64_t user;       /** */
+  uint64_t nice;       /** */
+  uint64_t system;     /** */
+  uint64_t idle;       /** */
+  uint64_t iowait;     /** */
+  uint64_t irq;        /** */
+  uint64_t softirq;    /** */
+  uint64_t steal;      /** */
+  uint64_t guest;      /** */
+  uint64_t guest_nice; /** */
+} cputime_t;
+
+typedef struct cpu_t 
+{
+  int num;            /** number of CPU */
+  cputime_t *times;   /** */
+} cpu_t;
+
 int get_cpu_usage(float *total_usage, float *sum_usage);
 
 #endif /* DEF_H_ */

@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include "common/vkSingleApp.h"
 #include "app.h"
-
+#include "io/vkCpuUsage.h"
 
 App::App(void)
 {
@@ -108,6 +108,8 @@ int App::exec(void)
         return -1;
     }
 
+    CpuUsage::CreateInst();
+
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
     return r;
@@ -121,6 +123,7 @@ void App::close(void)
 
 App::~App(void)
 {
+    CpuUsage::DestroyInst();
     uv_tty_reset_mode();
     delete m_console;
     delete m_signals;

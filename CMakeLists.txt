@@ -3,7 +3,7 @@ project(app)
 add_definitions(-std=gnu++0x)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 find_package(UV REQUIRED)
-find_package(CURL REQUIRED)
+#find_package(CURL REQUIRED)
 
 set(EXTRA_LIBS pthread rt)
 set(HEADERS
@@ -21,9 +21,9 @@ set(HEADERS
     common/log/vkLog.h
     common/log/vkBasicLog.h
     common/log/vkSysLog.h
-    common/cpu.h
     common/vkSingleApp.h
     io/vkFsWatcher.h
+    io/vkCpuUsage.h
     vkServer.h
     vkBindHost.h
 )
@@ -39,9 +39,9 @@ set(SRC
     common/log/vkLog.cpp
     common/log/vkBasicLog.cpp
     common/log/vkSysLog.cpp
-    common/cpu.cpp
     common/vkSingleApp.cpp
     io/vkFsWatcher.cpp
+    io/vkCpuUsage.cpp
     vkServer.cpp
     vkBindHost.cpp
     )

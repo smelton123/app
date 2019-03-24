@@ -10,26 +10,6 @@
 #define LINE_BUFFER_SIZE 1024
 //#define SWAP(a, b) {void *tmp = a; a = b; b = tmp;}
 
-typedef struct cputime_t 
-{
-  uint64_t user;       /** */
-  uint64_t nice;       /** */
-  uint64_t system;     /** */
-  uint64_t idle;       /** */
-  uint64_t iowait;     /** */
-  uint64_t irq;        /** */
-  uint64_t softirq;    /** */
-  uint64_t steal;      /** */
-  uint64_t guest;      /** */
-  uint64_t guest_nice; /** */
-} cputime_t;
-
-typedef struct cpu_t 
-{
-  int num;            /** number of CPU */
-  cputime_t *times;   /** */
-} cpu_t;
-
 static void *xmalloc(size_t size);
 static cpu_t *new_cpu_t(int num);
 static void delete_cpu_t(cpu_t *cpu);
