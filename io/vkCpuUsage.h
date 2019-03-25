@@ -43,6 +43,12 @@ typedef struct cpu_t
   cputime_t *times;   /** */
 } cpu_t;
 
+typedef struct cpu_counters 
+{
+  long long total_jiffies;
+  long long work_jiffies;
+}cpu_counters_t;
+
 class CpuUsage final
 {
 public:
@@ -53,9 +59,9 @@ public:
     int getAllCoreLoads(void) ;
     static inline int getCpuCores(void)  {return m_cpu_cores;}
     static inline int getCpuUsage(void)  {return m_cpu_usage;}
-    //bool isRunning(void);
-    constexpr static const size_t LINE_BUFFER_SIZE = 1024;
 
+    constexpr static const size_t LINE_BUFFER_SIZE = 1024;
+    
 private:
     CpuUsage(void);
     ~CpuUsage(void);
@@ -72,7 +78,13 @@ private:
     static void get_diff(cputime_t *before, cputime_t *after, cputime_t *diff);
     static result_t read_stat(cpu_t *cpu);
     static void cpu_copy(cpu_t *des, const cpu_t *src);
-    static void cal_cpu_load(cpu_t *before, cpu_t *after, float *total_usage, float *sum_of_core_load);
+    static float cal_cpu_load(const cpu_t *before, const cpu_t *after);
+
+    // secode part
+    /* reads the current cpu counters from /proc/stat */
+    static int read_cpu_counters(cpu_counters_t *cpu_cnt);
+    /* returns the cpu usage in percent */
+    static float cpu_usage(const cpu_counters_t *cpu_cnt_start, const cpu_counters_t *cpu_cnt_end);
 
 private:
     static CpuUsage *m_self;        // single instance.
@@ -81,6 +93,8 @@ private:
     static int m_cpu_usage;         // range:0%~100%
     static cpu_t *m_pre_cpu;
     static cpu_t *m_cur_cpu;
+    static cpu_counters_t m_pre_counter;
+    static cpu_counters_t m_cur_counter;
     static uv_mutex_t m_mutex;
     uv_timer_t *m_timer;
 };
