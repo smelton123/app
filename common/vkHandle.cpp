@@ -52,3 +52,10 @@ void Handle::close(uv_timer_s *handle)
         close(reinterpret_cast<uv_handle_t *>(handle));
     }
 }
+
+void Handle::close(uv_process_s *handle)
+{
+    if (handle) {
+        close(reinterpret_cast<uv_handle_t *>(handle));
+    }
+}

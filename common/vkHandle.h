@@ -8,6 +8,7 @@ typedef struct uv_handle_s uv_handle_t;
 typedef struct uv_signal_s uv_signal_t;
 typedef struct uv_tcp_s uv_tcp_t;
 typedef struct uv_timer_s uv_timer_t;
+typedef struct uv_process_s uv_process_t;
 
 class Handle final
 {
@@ -18,6 +19,7 @@ public:
     static void close(uv_signal_t *handle);
     static void close(uv_tcp_t *handle);
     static void close(uv_timer_t *handle);
+    static void close(uv_process_t *handle);
 };
 
 #endif
