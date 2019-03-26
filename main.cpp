@@ -1,12 +1,14 @@
 #include "app.h"
 
+#if 1
+int main(int argc, char **argv)
+{
+    App app;
+    return app.exec();
+}
+#endif
 
-//int main(int argc, char **argv)
-//{
-//    App app;
-//    return app.exec();
-//}
-
+#if 0
 #include <stdio.h>
 #include <uv.h>
 
@@ -15,35 +17,42 @@ uv_process_t child_req;
 uv_process_options_t options;
 
 void on_exit(uv_process_t *req, int64_t exit_status, int term_signal) {
-    fprintf(stdout, "Process exited with status %PRId64, signal %d\n", exit_status, term_signal);
+    fprintf(stdout, "Process exited with status %ld, signal %d.\n", exit_status, term_signal);
     uv_close((uv_handle_t*) req, NULL);
 }
+void onTimer(uv_timer_t *handle)
+{
+    printf("timer run\n");
+}
 
-int main() {
-    loop = uv_default_loop();
-
+int main()
+{
     char* args[3];
-    args[0] = "sleep";
-    args[1] = "5";
-    args[2] = NULL;
+    args[0] = "./stak";
+    args[1] = nullptr;
 
-    options.exit_cb = NULL;
-    options.file = "sleep";
+    options.exit_cb = on_exit;
+    options.file = "./stak";
     options.args = args;
     options.flags = UV_PROCESS_DETACHED;
+    uv_timer_t *m_timer = new uv_timer_t;
+
+    uv_timer_init(uv_default_loop(), m_timer);   
+    uv_timer_start(m_timer, onTimer, 500, 2000);
 
     int r;
-    if ((r = uv_spawn(loop, &child_req, &options))) {
+    if ((r = uv_spawn(uv_default_loop(), &child_req, &options))) {
         fprintf(stderr, "%s\n", uv_strerror(r));
         return 1;
     }
     fprintf(stderr, "Launched sleep with PID %d\n", child_req.pid);
     //uv_unref((uv_handle_t*) &child_req);
-    uv_process_kill(&child_req, SIGINT);
+    //uv_process_kill(&child_req, SIGINT);
 
-    return uv_run(loop, UV_RUN_DEFAULT);
+    return uv_run(uv_default_loop(), UV_RUN_DEFAULT);
 }
 
+#endif
 #if 0
 //
 // Created by chenchukun on 18/1/20.

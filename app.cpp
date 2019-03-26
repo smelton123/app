@@ -8,6 +8,7 @@
 #include "common/vkSingleApp.h"
 #include "app.h"
 #include "io/vkCpuUsage.h"
+#include "io/vkProcessMonitor.h"
 
 App::App(void)
 {
@@ -109,7 +110,9 @@ int App::exec(void)
     }
 
     CpuUsage::CreateInst();
-
+    ProcessMonitor::CreateInst();
+    ProcessMonitor::start();
+    
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
     return r;
@@ -124,6 +127,7 @@ void App::close(void)
 App::~App(void)
 {
     CpuUsage::DestroyInst();
+    ProcessMonitor::DestroyInst();
     uv_tty_reset_mode();
     delete m_console;
     delete m_signals;
