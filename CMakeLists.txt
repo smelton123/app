@@ -25,7 +25,7 @@ set(HEADERS
     common/vkUpgradeWorker.h
     common/vkProcess.h
     io/vkFsWatcher.h
-    io/vkProcessMonitor.h
+    io/vkPsWatcher.h
     io/vkCpuUsage.h
     vkVersion.h
     vkServer.h
@@ -49,7 +49,7 @@ set(SRC
     common/vkProcess.cpp
     io/vkFsWatcher.cpp
     io/vkCpuUsage.cpp
-    io/vkProcessMonitor.cpp
+    io/vkPsWatcher.cpp
     vkServer.cpp
     vkBindHost.cpp
     vkSummary.cpp
