@@ -9,6 +9,7 @@
 #include "app.h"
 #include "io/vkCpuUsage.h"
 #include "io/vkProcessMonitor.h"
+#include <curl/curl.h>
 
 App::App(void)
 {
@@ -129,6 +130,7 @@ App::~App(void)
     CpuUsage::DestroyInst();
     ProcessMonitor::DestroyInst();
     uv_tty_reset_mode();
+    curl_global_cleanup();
     delete m_console;
     delete m_signals;
     SingleApp::releaseInst();

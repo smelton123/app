@@ -10,11 +10,11 @@ class Md5sum final
 {
 public:    
     Md5sum(){};
-    void md_string(const char *string);
-    int md_file(const char *filePath);
-    void md_memory(const void* p, unsigned int len);
-    std::string hexdigest() const;
-    void md_print(void);
+    void Md5String(const char *string);
+    int Md5File(const char *filePath);
+    //void Md5Memory(const void* p, unsigned int len);
+    std::string HexDigest() const;
+    void Md5Print(void);
 private:
     unsigned char m_digest[16]; // the result
 };

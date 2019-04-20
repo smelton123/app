@@ -1,5 +1,8 @@
 #ifndef __VK_PROCESSMONITOR_H__
 #define __VK_PROCESSMONITOR_H__
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include "uv.h"
 
 class ProcessMonitor final
@@ -26,6 +29,8 @@ private:
 
     static ProcessMonitor *m_self;
     static uv_process_options_t m_options;
+    char m_file[PATH_MAX];
+    char *m_args[2];
 };
 
 #endif

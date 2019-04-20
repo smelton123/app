@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 
-std::string Md5sum::hexdigest() const
+std::string Md5sum::HexDigest() const
 {
     char buf[33];
     for (int i=0; i<16; i++)
@@ -12,7 +12,7 @@ std::string Md5sum::hexdigest() const
     return std::string(buf);
 }
 
-int Md5sum::md_file(const char *filename)
+int Md5sum::Md5File(const char *filename)
 {
     FILE *file;
     MD5_CTX context;
@@ -35,7 +35,7 @@ int Md5sum::md_file(const char *filename)
     return 0;
 }
 
-void Md5sum::md_string(const char *string)
+void Md5sum::Md5String(const char *string)
 {
     MD5_CTX context;
     unsigned int len = strlen (string);
@@ -45,7 +45,7 @@ void Md5sum::md_string(const char *string)
     MD5Final(m_digest, &context);
 }
 
-void Md5sum::md_print(void)
+void Md5sum::Md5Print(void)
 {
     int i = 0;
     printf("md5sum:");

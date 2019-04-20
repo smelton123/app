@@ -3,7 +3,7 @@ project(app)
 add_definitions(-std=gnu++0x)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 find_package(UV REQUIRED)
-#find_package(CURL REQUIRED)
+find_package(CURL REQUIRED)
 
 set(EXTRA_LIBS pthread rt)
 set(HEADERS
@@ -22,10 +22,14 @@ set(HEADERS
     common/log/vkBasicLog.h
     common/log/vkSysLog.h
     common/vkSingleApp.h
+    common/vkUpgradeWorker.h
+    common/vkProcess.h
     io/vkFsWatcher.h
     io/vkProcessMonitor.h
     io/vkCpuUsage.h
+    vkVersion.h
     vkServer.h
+    vkSummary.h
     vkBindHost.h
 )
 set(SRC 
@@ -41,11 +45,14 @@ set(SRC
     common/log/vkBasicLog.cpp
     common/log/vkSysLog.cpp
     common/vkSingleApp.cpp
+    common/vkUpgradeWorker.cpp
+    common/vkProcess.cpp
     io/vkFsWatcher.cpp
     io/vkCpuUsage.cpp
     io/vkProcessMonitor.cpp
     vkServer.cpp
     vkBindHost.cpp
+    vkSummary.cpp
     )
 include_directories(${UV_INCLUDE_DIR})
 include_directories(${CURL_INCLUDE_DIRS})

