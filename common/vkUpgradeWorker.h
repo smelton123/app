@@ -7,6 +7,7 @@
 #include "vkMd5sum.h"
 
 using namespace std;
+class ProcessMonitor;
 
 class UpgradeWorker final
 {
@@ -15,7 +16,7 @@ public:
     UpgradeWorker(void);
     ~UpgradeWorker(void);
 
-    void Scheduler(void);
+    void Scheduler(ProcessMonitor *processMonitor);
 
 private:
     static void DoWorkCb(uv_work_t *req);

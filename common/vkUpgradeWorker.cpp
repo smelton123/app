@@ -33,6 +33,7 @@ UpgradeWorker::~UpgradeWorker(void)
 
 void UpgradeWorker::DoWorkCb(uv_work_t *req)
 {
+    int ret = 0;
     printf("%s entry\n", __FUNCTION__);
     string str;
     Md5sum ExeMd5sum;
@@ -50,10 +51,17 @@ void UpgradeWorker::DoWorkCb(uv_work_t *req)
         /* Set the default value: strict certificate check please */
         curl_easy_setopt(easy_handle, CURLOPT_SSL_VERIFYPEER, 0L);
 	    curl_easy_setopt(easy_handle, CURLOPT_WRITEDATA, fp);
-        curl_easy_setopt(easy_handle, CURLOPT_TIMEOUT, 1200);
-        curl_easy_perform(easy_handle);
-        //curl_easy_cleanup(easy_handle);
+        curl_easy_setopt(easy_handle, CURLOPT_TIMEOUT, 1200);// 1200s
+        ret = curl_easy_perform(easy_handle);
+
         fclose(fp);
+        if (ret!=0)
+        {
+            printf("download json.txt fail!\n");
+            curl_easy_cleanup(easy_handle);
+            goto error;
+        }
+
 
         // get md5sum
         fp = fopen(s_jsonfile.c_str(), "r");
@@ -70,6 +78,12 @@ void UpgradeWorker::DoWorkCb(uv_work_t *req)
         }
         fclose(fp);
 
+        if(strcmp(ExeMd5sum.HexDigest().c_str(), str.c_str())==0)
+        {
+            printf("md5sum are same,don't need upgrade.\n");
+            return ;
+        }
+
         // download exe file
         fp = fopen(s_exefile.c_str(), "w+");
         curl_easy_setopt(easy_handle, CURLOPT_URL, s_exe_url_addr);
@@ -77,13 +91,26 @@ void UpgradeWorker::DoWorkCb(uv_work_t *req)
         curl_easy_setopt(easy_handle, CURLOPT_SSL_VERIFYPEER, 0L);
 	    curl_easy_setopt(easy_handle, CURLOPT_WRITEDATA, fp);
         curl_easy_setopt(easy_handle, CURLOPT_TIMEOUT, 1200);
-        curl_easy_perform(easy_handle);
-        //curl_easy_cleanup(easy_handle);
+        ret = curl_easy_perform(easy_handle);
+        curl_easy_cleanup(easy_handle);
         fclose(fp);
+
+        if (ret!=0)
+        {
+            printf("download bin fail!\n");
+            goto error;
+        }
+
+        ExeMd5sum.Md5File(s_exefile.c_str());
+        if(strcmp(ExeMd5sum.HexDigest().c_str(), str.c_str())==0)
+        {
+            printf("check bin md5sum failed,don't need upgrade.\n");
+            return ;
+        }
 
 
     }
-    
+error:    
     printf("%s exit\n", __FUNCTION__);
 }
 
@@ -94,7 +121,7 @@ void UpgradeWorker::AfterWorkCb(uv_work_t *req, int status)
     delete pThis;
 }
 
-void UpgradeWorker::Scheduler(void)
+void UpgradeWorker::Scheduler(ProcessMonitor *processMonitor)
 {
     uv_queue_work(uv_default_loop(), m_worker, UpgradeWorker::DoWorkCb, UpgradeWorker::AfterWorkCb);
 }

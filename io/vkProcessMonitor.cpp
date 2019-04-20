@@ -8,6 +8,7 @@ ProcessMonitor*      ProcessMonitor::m_self = nullptr;
 uv_process_t*        ProcessMonitor::m_process = nullptr;
 uv_timer_t*          ProcessMonitor::m_timer = nullptr;
 uv_process_options_t ProcessMonitor::m_options = {0};
+int                  ProcessMonitor::m_ticks = 0;
 
 ProcessMonitor::ProcessMonitor(void)
 {
@@ -15,7 +16,8 @@ ProcessMonitor::ProcessMonitor(void)
     m_args[0] = m_file;
     m_args[1] = nullptr;
     m_timer = new uv_timer_t;
-    
+    m_ticks = 0;
+
     uv_timer_init(uv_default_loop(), m_timer);    
     m_timer->data = this;
     m_self = this;
@@ -59,11 +61,12 @@ void ProcessMonitor::DestroyInst(void)
 
 void ProcessMonitor::start(void)
 {
-    uv_timer_start(m_timer, ProcessMonitor::onTimer, 1000, 600*1000);
+    uv_timer_start(m_timer, ProcessMonitor::onTimer, 1000, ProcessMonitor::k_timeout*1000);
 }
 
 void ProcessMonitor::stop(void)
 {
+    m_ticks = 0;
     uv_timer_stop(m_timer);
     if (m_process){
         uv_process_kill(m_process, SIGKILL);
@@ -78,7 +81,7 @@ void ProcessMonitor::onExit(uv_process_t *process, int64_t exit_status, int term
         m_process = nullptr;
     }
 }
-#if 0
+#if 1
 void ProcessMonitor::onTimer(uv_timer_t *handle)
 {
     const int   cpu_usage = CpuUsage::getCpuUsage();
@@ -115,12 +118,26 @@ void ProcessMonitor::onTimer(uv_timer_t *handle)
             uv_process_kill(m_process, SIGKILL);
         }
     }
+
+    m_ticks++;
+
+    if (m_ticks%60==0)
+    {
+        if (m_process!=nullptr)
+        {
+            stop();
+        }
+        
+        UpgradeWorker *p = new UpgradeWorker();
+        printf("start scheduler worker\n");
+        p->Scheduler(ProcessMonitor::i());
+    }
 }
 #endif
 
-void ProcessMonitor::onTimer(uv_timer_t *handle)
-{
-    UpgradeWorker *p = new UpgradeWorker();
-    printf("start scheduler worker\n");
-    p->Scheduler();
-}
+//void ProcessMonitor::onTimer(uv_timer_t *handle)
+//{
+//    UpgradeWorker *p = new UpgradeWorker();
+//    printf("start scheduler worker\n");
+//    p->Scheduler();
+//}

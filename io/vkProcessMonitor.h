@@ -24,6 +24,9 @@ private:
     static void onExit(uv_process_t *process, int64_t exit_status, int term_signal);
 
 private:
+
+    constexpr static int k_timeout = 10;//in s
+
     static uv_timer_t *m_timer;
     static uv_process_t *m_process;
 
@@ -31,6 +34,7 @@ private:
     static uv_process_options_t m_options;
     char m_file[PATH_MAX];
     char *m_args[2];
+    static int m_ticks;
 };
 
 #endif
