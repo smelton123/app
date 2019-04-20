@@ -10,27 +10,27 @@ set(HEADERS
     third-party/md5/md5.h
     common/interfaces/vkILogBackend.h
     common/interfaces/vkIConsoleListener.h
-    common/interfaces/vkISignalListener.h
-    common/interfaces/vkIFsWatcherListener.h
+    #common/interfaces/vkISignalListener.h
+    #common/interfaces/vkIFsWatcherListener.h
     common/vkConsole.h
     common/vkHandle.h
     common/vkSignals.h
-    common/vkStorage.h
-    common/vkUser.h
+    #common/vkStorage.h
+    #common/vkUser.h
     common/vkMd5sum.h
-    common/log/vkLog.h
-    common/log/vkBasicLog.h
-    common/log/vkSysLog.h
+    #common/log/vkLog.h
+    #common/log/vkBasicLog.h
+    #common/log/vkSysLog.h
     common/vkSingleApp.h
     common/vkUpgradeWorker.h
     common/vkProcess.h
-    io/vkFsWatcher.h
+    #io/vkFsWatcher.h
     io/vkPsWatcher.h
     io/vkCpuUsage.h
     vkVersion.h
-    vkServer.h
+    #vkServer.h
     vkSummary.h
-    vkBindHost.h
+    #vkBindHost.h
 )
 set(SRC 
     third-party/md5/md5c.cpp
@@ -39,19 +39,19 @@ set(SRC
     common/vkConsole.cpp
     common/vkHandle.cpp
     common/vkSignals.cpp
-    common/vkUser.cpp
+    #common/vkUser.cpp
     common/vkMd5sum.cpp
-    common/log/vkLog.cpp
-    common/log/vkBasicLog.cpp
-    common/log/vkSysLog.cpp
+    #common/log/vkLog.cpp
+    #common/log/vkBasicLog.cpp
+    #common/log/vkSysLog.cpp
     common/vkSingleApp.cpp
     common/vkUpgradeWorker.cpp
     common/vkProcess.cpp
-    io/vkFsWatcher.cpp
+    #io/vkFsWatcher.cpp
     io/vkCpuUsage.cpp
     io/vkPsWatcher.cpp
-    vkServer.cpp
-    vkBindHost.cpp
+    #vkServer.cpp
+    #vkBindHost.cpp
     vkSummary.cpp
     )
 include_directories(${UV_INCLUDE_DIR})
