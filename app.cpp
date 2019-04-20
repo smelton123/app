@@ -112,7 +112,7 @@ int App::exec(void)
 
     CpuUsage::CreateInst();
     PsWatcher::CreateInst();
-    PsWatcher::start();
+    PsWatcher::Start();
     
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());

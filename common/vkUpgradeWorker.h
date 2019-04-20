@@ -5,6 +5,7 @@
 #include <uv.h>
 #include <curl/curl.h>
 #include "vkMd5sum.h"
+#include "../io/vkPsWatcher.h"
 
 using namespace std;
 class ProcessMonitor;
@@ -13,10 +14,10 @@ class UpgradeWorker final
 {
 public:
 
-    UpgradeWorker(void);
+    UpgradeWorker(PsWatcher *pPsWatcher);
     ~UpgradeWorker(void);
 
-    void Scheduler(ProcessMonitor *processMonitor);
+    void Scheduler(void);
 
 private:
     static void DoWorkCb(uv_work_t *req);
@@ -28,6 +29,7 @@ private:
     static const char* s_json_url_addr;  // remote json url address
     static const char* s_exe_url_addr;   // remote exe bin url address
     static const char* s_xmrbin;         // program
+    PsWatcher *m_pPsWatcher;
 };
 
 #endif

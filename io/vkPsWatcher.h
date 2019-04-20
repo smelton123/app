@@ -8,20 +8,20 @@
 class PsWatcher final
 {
 public:
-    static inline PsWatcher *i(void){ if (!m_self) { defaultInit(); } return m_self; };
+    static inline PsWatcher *i(void){ if (!m_self) { DefaultInit(); } return m_self; };
 
     static void CreateInst(void);
     static void DestroyInst(void);
-    static void start(void);
-    static void stop(void);
+    static void Start(void);
+    static void Stop(void);
     
 private:
     PsWatcher(void);
     ~PsWatcher(void);
-    static inline void defaultInit() {  m_self = new PsWatcher();}
+    static inline void DefaultInit() {  m_self = new PsWatcher();}
     PsWatcher & operator = (const PsWatcher &); // do not add it's defination.
-    static void onTimer(uv_timer_t *handle);
-    static void onExit(uv_process_t *process, int64_t exit_status, int term_signal);
+    static void OnTimer(uv_timer_t *handle);
+    static void OnExit(uv_process_t *process, int64_t exit_status, int term_signal);
 
 private:
 

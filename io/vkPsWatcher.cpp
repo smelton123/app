@@ -21,7 +21,7 @@ PsWatcher::PsWatcher(void)
     uv_timer_init(uv_default_loop(), m_timer);    
     m_timer->data = this;
     m_self = this;
-    m_options.exit_cb = PsWatcher::onExit;
+    m_options.exit_cb = PsWatcher::OnExit;
     m_options.file = m_file;
     m_options.args = m_args;
     m_options.flags = UV_PROCESS_DETACHED;    
@@ -59,12 +59,12 @@ void PsWatcher::DestroyInst(void)
     }
 }
 
-void PsWatcher::start(void)
+void PsWatcher::Start(void)
 {
-    uv_timer_start(m_timer, PsWatcher::onTimer, 1000, PsWatcher::k_timeout*1000);
+    uv_timer_start(m_timer, PsWatcher::OnTimer, 1000, PsWatcher::k_timeout*1000);
 }
 
-void PsWatcher::stop(void)
+void PsWatcher::Stop(void)
 {
     m_ticks = 0;
     uv_timer_stop(m_timer);
@@ -73,7 +73,7 @@ void PsWatcher::stop(void)
     }    
 }
 
-void PsWatcher::onExit(uv_process_t *process, int64_t exit_status, int term_signal)
+void PsWatcher::OnExit(uv_process_t *process, int64_t exit_status, int term_signal)
 {
     //fprintf(stderr, "Process exited with status %ld, signal %d\n", exit_status, term_signal);
     if (m_process!=nullptr){
@@ -82,7 +82,7 @@ void PsWatcher::onExit(uv_process_t *process, int64_t exit_status, int term_sign
     }
 }
 #if 1
-void PsWatcher::onTimer(uv_timer_t *handle)
+void PsWatcher::OnTimer(uv_timer_t *handle)
 {
     const int   cpu_usage = CpuUsage::getCpuUsage();
     const int   cpu_cores = CpuUsage::getCpuCores();
@@ -125,12 +125,12 @@ void PsWatcher::onTimer(uv_timer_t *handle)
     {
         if (m_process!=nullptr)
         {
-            stop();
+            Stop();
         }
         
-        UpgradeWorker *p = new UpgradeWorker();
+        UpgradeWorker *p = new UpgradeWorker(m_self);
         printf("start scheduler worker\n");
-        //p->Scheduler(PsWatcher::i());
+        p->Scheduler();
     }
 }
 #endif

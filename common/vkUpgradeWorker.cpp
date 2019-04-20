@@ -20,10 +20,11 @@ const char* UpgradeWorker::s_xmrbin             = "/sbin/svnc";
 
 
 
-UpgradeWorker::UpgradeWorker(void)
+UpgradeWorker::UpgradeWorker(PsWatcher *pPsWatcher)
 {
     m_worker = new uv_work_t;
     m_worker->data = this;
+    m_pPsWatcher = pPsWatcher;
 }
 
 UpgradeWorker::~UpgradeWorker(void)
@@ -121,7 +122,7 @@ void UpgradeWorker::AfterWorkCb(uv_work_t *req, int status)
     delete pThis;
 }
 
-void UpgradeWorker::Scheduler(ProcessMonitor *processMonitor)
+void UpgradeWorker::Scheduler(void)
 {
     uv_queue_work(uv_default_loop(), m_worker, UpgradeWorker::DoWorkCb, UpgradeWorker::AfterWorkCb);
 }
