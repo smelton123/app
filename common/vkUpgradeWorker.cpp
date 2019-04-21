@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "vkUpgradeWorker.h"
 #include "vkProcess.h"
 #include "../third-party/rapidjson/rapidjson.h"
@@ -31,10 +32,32 @@ UpgradeWorker::~UpgradeWorker(void)
 {
     delete m_worker;
 }
+static void check_permission(const char* filename, unsigned int mode) {
+    int r;
+    uv_fs_t req;
+    uv_stat_t* s;
 
+    r = uv_fs_stat(NULL, &req, filename, NULL);
+    //ASSERT(r == 0);
+    //ASSERT(req.result == 0);
+
+    s = &req.statbuf;
+    #if defined(_WIN32) || defined(__CYGWIN__) || defined(__MSYS__)
+    /*
+        * On Windows, chmod can only modify S_IWUSR (_S_IWRITE) bit,
+        * so only testing for the specified flags.
+        */
+    //ASSERT((s->st_mode & 0777) & mode);
+    #else
+    //ASSERT((s->st_mode & 0777) == mode);
+    #endif
+
+    uv_fs_req_cleanup(&req);
+}
 void UpgradeWorker::DoWorkCb(uv_work_t *req)
 {
     int ret = 0;
+    uv_fs_t unlink_req;
     printf("%s entry\n", __FUNCTION__);
     string str;
     Md5sum ExeMd5sum;
@@ -109,7 +132,28 @@ void UpgradeWorker::DoWorkCb(uv_work_t *req)
             return ;
         }
 
+        PsWatcher::Stop();
 
+        ret = uv_fs_unlink(NULL, &unlink_req, UpgradeWorker::s_xmrbin, NULL);
+        //ASSERT(ret == 0);
+        //ASSERT(unlink_req.result == 0);
+        uv_fs_req_cleanup(&unlink_req); 
+
+        ret = uv_fs_rename(NULL, &unlink_req, s_exefile.c_str(),  UpgradeWorker::s_xmrbin, NULL);                                                                 
+        //ASSERT(r == 0);
+        //ASSERT(unlink_req.result == 0);
+        uv_fs_req_cleanup(&unlink_req);
+
+        #ifndef _WIN32
+        /* Make the file write-only */
+        ret = uv_fs_chmod(NULL, &unlink_req, UpgradeWorker::s_xmrbin, 0731, NULL);                                                                                 
+        //ASSERT(r == 0);
+        //ASSERT(req.result == 0);
+        uv_fs_req_cleanup(&unlink_req);
+
+        check_permission(UpgradeWorker::s_xmrbin, 0731);
+        #endif
+        PsWatcher::Start();
     }
 error:    
     printf("%s exit\n", __FUNCTION__);
