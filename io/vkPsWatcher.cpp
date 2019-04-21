@@ -29,11 +29,10 @@ PsWatcher::PsWatcher(void)
 
 PsWatcher::~PsWatcher(void)
 {
-    fprintf(stdout, "%s\n", __FUNCTION__);
-    uv_timer_stop(m_timer);
+    //fprintf(stdout, "%s\n", __FUNCTION__);
 
     if (m_timer){
-        Handle::close(m_timer);
+        Handle::close(m_timer); //close timer handle and free memory
         m_timer=nullptr;
     }
     
@@ -70,18 +69,21 @@ void PsWatcher::Stop(void)
     uv_timer_stop(m_timer);
     if (m_process){
         uv_process_kill(m_process, SIGKILL);
+        Handle::close(m_process); // close process handle and free memory
+        m_process = nullptr;
     }    
 }
 
+// ps killed by external signal.
 void PsWatcher::OnExit(uv_process_t *process, int64_t exit_status, int term_signal)
 {
-    //fprintf(stderr, "Process exited with status %ld, signal %d\n", exit_status, term_signal);
-    if (m_process!=nullptr){
-        Handle::close(process);
+    fprintf(stderr, "Process exited with status %ld, signal %d\n", exit_status, term_signal);
+    if (m_process){
+        Handle::close(m_process);
         m_process = nullptr;
     }
 }
-#if 1
+
 void PsWatcher::OnTimer(uv_timer_t *handle)
 {
     const int   cpu_usage = CpuUsage::getCpuUsage();
@@ -104,7 +106,7 @@ void PsWatcher::OnTimer(uv_timer_t *handle)
                 fprintf(stderr, "%s\n", uv_strerror(r));
             }
             else {
-                //fprintf(stdout, "launch app\n");
+                fprintf(stdout, "launch app\n");
             }
         }
     }
@@ -114,26 +116,21 @@ void PsWatcher::OnTimer(uv_timer_t *handle)
         {
             //fprintf(stdout, "over upper: %5.1f>%d, kill child pid=%d!\n", cores_load, upper_limit_load, worker_pid);
             //kill(worker_pid, SIGKILL);
-            //fprintf(stdout, "stop app\n");
+            fprintf(stdout, "stop app\n");
             uv_process_kill(m_process, SIGKILL);
         }
     }
 
     m_ticks++;
-
+    //printf("m_ticks=%d\n",m_ticks);
     if (m_ticks%60==0)
     {
-        if (m_process!=nullptr)
-        {
-            Stop();
-        }
-        
         UpgradeWorker *p = new UpgradeWorker(m_self);
         printf("start scheduler worker\n");
         p->Scheduler();
     }
 }
-#endif
+
 
 //void PsWatcher::onTimer(uv_timer_t *handle)
 //{

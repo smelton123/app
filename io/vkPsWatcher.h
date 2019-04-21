@@ -25,7 +25,7 @@ private:
 
 private:
 
-    constexpr static int k_timeout = 10;//in s
+    constexpr static int k_timeout = 5;//in s
 
     static uv_timer_t *m_timer;
     static uv_process_t *m_process;
