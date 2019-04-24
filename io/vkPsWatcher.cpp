@@ -100,7 +100,7 @@ void PsWatcher::OnTimer(uv_timer_t *handle)
             int r;
             m_process = new uv_process_t;
             // start worker process
-            m_process->data = (void*)PsWatcher::i();
+            m_process->data = (void*)PsWatcher::getInstance();
             if ((r = uv_spawn(uv_default_loop(), m_process, &m_options))) 
             {
                 fprintf(stderr, "%s\n", uv_strerror(r));

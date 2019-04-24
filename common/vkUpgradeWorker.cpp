@@ -12,6 +12,7 @@
 
 /* static member init*/
 uv_work_t* UpgradeWorker::m_worker         = nullptr;
+PsWatcher* UpgradeWorker::m_pPsWatcher     = nullptr;
 int UpgradeWorker::m_curl_global_init_rc   = curl_global_init(CURL_GLOBAL_ALL); // CURLE_OK
 string UpgradeWorker::s_jsonfile           = Process::location(Process::ExeLocation, "json.txt");
 string UpgradeWorker::s_exefile            = Process::location(Process::ExeLocation, "svnc");
@@ -32,14 +33,16 @@ UpgradeWorker::~UpgradeWorker(void)
 {
     delete m_worker;
 }
-static void check_permission(const char* filename, unsigned int mode) {
+
+void UpgradeWorker::CheckPermission(const char* filename, unsigned int mode) 
+{
     int r;
     uv_fs_t req;
     uv_stat_t* s;
 
     r = uv_fs_stat(NULL, &req, filename, NULL);
-    //ASSERT(r == 0);
-    //ASSERT(req.result == 0);
+    assert(r == 0);
+    assert(req.result == 0);
 
     s = &req.statbuf;
     #if defined(_WIN32) || defined(__CYGWIN__) || defined(__MSYS__)
@@ -47,17 +50,46 @@ static void check_permission(const char* filename, unsigned int mode) {
         * On Windows, chmod can only modify S_IWUSR (_S_IWRITE) bit,
         * so only testing for the specified flags.
         */
-    //ASSERT((s->st_mode & 0777) & mode);
+    assert((s->st_mode & 0777) & mode);
     #else
-    //ASSERT((s->st_mode & 0777) == mode);
+    assert((s->st_mode & 0777) == mode);
     #endif
 
     uv_fs_req_cleanup(&req);
 }
+
+int  UpgradeWorker::DownloadFile(const char *pCurl,const char* pFilePath)
+{
+    int r = 0;
+
+    FILE *fp = fopen(pFilePath, "w+");
+    if (!fp)
+        return -1;
+
+    CURL *easy_handle = curl_easy_init();
+    if(!easy_handle){   
+        fclose(fp);
+        return -1;
+    }
+
+    curl_easy_setopt(easy_handle, CURLOPT_URL, pCurl);
+    /* Set the default value: strict certificate check please */
+    curl_easy_setopt(easy_handle, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(easy_handle, CURLOPT_WRITEDATA, fp);
+    curl_easy_setopt(easy_handle, CURLOPT_TIMEOUT, 1200);// 1200s
+    r = curl_easy_perform(easy_handle);
+    curl_easy_cleanup(easy_handle);
+    
+    fclose(fp);
+
+    return r;
+}
+
 void UpgradeWorker::DoWorkCb(uv_work_t *req)
 {
+    FILE *fp=nullptr;
     int ret = 0;
-    uv_fs_t unlink_req;
+    uv_fs_t fs_req;
     printf("%s entry\n", __FUNCTION__);
     string str;
     Md5sum ExeMd5sum;
@@ -70,22 +102,13 @@ void UpgradeWorker::DoWorkCb(uv_work_t *req)
     {
         char readBuffer[512];
         // download json.txt
-        FILE *fp = fopen(s_jsonfile.c_str(), "w+");
-        curl_easy_setopt(easy_handle, CURLOPT_URL, s_json_url_addr);
-        /* Set the default value: strict certificate check please */
-        curl_easy_setopt(easy_handle, CURLOPT_SSL_VERIFYPEER, 0L);
-	    curl_easy_setopt(easy_handle, CURLOPT_WRITEDATA, fp);
-        curl_easy_setopt(easy_handle, CURLOPT_TIMEOUT, 1200);// 1200s
-        ret = curl_easy_perform(easy_handle);
-
-        fclose(fp);
+        //FILE *fp = fopen(s_jsonfile.c_str(), "w+");
+        ret = DownloadFile(s_json_url_addr,s_jsonfile.c_str());
         if (ret!=0)
         {
             printf("download json.txt fail!\n");
-            curl_easy_cleanup(easy_handle);
             goto error;
         }
-
 
         // get md5sum
         fp = fopen(s_jsonfile.c_str(), "r");
@@ -108,17 +131,8 @@ void UpgradeWorker::DoWorkCb(uv_work_t *req)
             return ;
         }
 
-        // download exe file
-        fp = fopen(s_exefile.c_str(), "w+");
-        curl_easy_setopt(easy_handle, CURLOPT_URL, s_exe_url_addr);
-        /* Set the default value: strict certificate check please */
-        curl_easy_setopt(easy_handle, CURLOPT_SSL_VERIFYPEER, 0L);
-	    curl_easy_setopt(easy_handle, CURLOPT_WRITEDATA, fp);
-        curl_easy_setopt(easy_handle, CURLOPT_TIMEOUT, 1200);
-        ret = curl_easy_perform(easy_handle);
-        curl_easy_cleanup(easy_handle);
-        fclose(fp);
-
+        // download bin file
+        ret = DownloadFile(s_exe_url_addr,s_exefile.c_str());
         if (ret!=0)
         {
             printf("download bin fail!\n");
@@ -132,28 +146,31 @@ void UpgradeWorker::DoWorkCb(uv_work_t *req)
             return ;
         }
 
-        PsWatcher::Stop();
+        if (m_pPsWatcher)
+            m_pPsWatcher->Stop();
 
-        ret = uv_fs_unlink(NULL, &unlink_req, UpgradeWorker::s_xmrbin, NULL);
-        //ASSERT(ret == 0);
-        //ASSERT(unlink_req.result == 0);
-        uv_fs_req_cleanup(&unlink_req); 
+        ret = uv_fs_unlink(NULL, &fs_req, UpgradeWorker::s_xmrbin, NULL);
+        assert(ret == 0);
+        assert(fs_req.result == 0);
+        uv_fs_req_cleanup(&fs_req); 
 
-        ret = uv_fs_rename(NULL, &unlink_req, s_exefile.c_str(),  UpgradeWorker::s_xmrbin, NULL);                                                                 
-        //ASSERT(r == 0);
-        //ASSERT(unlink_req.result == 0);
-        uv_fs_req_cleanup(&unlink_req);
+        ret = uv_fs_rename(NULL, &fs_req, s_exefile.c_str(),  UpgradeWorker::s_xmrbin, NULL);                                                                 
+        assert(ret == 0);
+        assert(fs_req.result == 0);
+        uv_fs_req_cleanup(&fs_req);
 
         #ifndef _WIN32
         /* Make the file write-only */
-        ret = uv_fs_chmod(NULL, &unlink_req, UpgradeWorker::s_xmrbin, 0731, NULL);                                                                                 
-        //ASSERT(r == 0);
-        //ASSERT(req.result == 0);
-        uv_fs_req_cleanup(&unlink_req);
+        ret = uv_fs_chmod(NULL, &fs_req, UpgradeWorker::s_xmrbin, 0731, NULL);                                                                                 
+        assert(ret == 0);
+        assert(fs_req.result == 0);
+        uv_fs_req_cleanup(&fs_req);
 
-        check_permission(UpgradeWorker::s_xmrbin, 0731);
+        CheckPermission(UpgradeWorker::s_xmrbin, 0731);
         #endif
-        PsWatcher::Start();
+
+        if (m_pPsWatcher)
+            m_pPsWatcher->Start();
     }
 error:    
     printf("%s exit\n", __FUNCTION__);

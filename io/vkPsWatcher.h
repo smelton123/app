@@ -8,12 +8,12 @@
 class PsWatcher final
 {
 public:
-    static inline PsWatcher *i(void){ if (!m_self) { DefaultInit(); } return m_self; };
+    static inline PsWatcher *getInstance(void){ if (!m_self) { DefaultInit(); } return m_self; };
 
     static void CreateInst(void);
     static void DestroyInst(void);
-    static void Start(void);
-    static void Stop(void);
+    void Start(void);
+    void Stop(void);
     
 private:
     PsWatcher(void);
