@@ -128,6 +128,7 @@ void App::close(void)
 App::~App(void)
 {
     CpuUsage::DestroyInst();
+    PsWatcher::getInstance()->Stop();
     PsWatcher::DestroyInst();
     uv_tty_reset_mode();
     curl_global_cleanup();
@@ -141,15 +142,21 @@ void App::onSignal(int signum)
 {
     switch (signum)
     {
+    case SIGKILL:
+        PsWatcher::getInstance()->Stop();
+        break;
     case SIGHUP:
+        PsWatcher::getInstance()->Stop();
         //LOG_WARN("SIGHUP received, exiting");
         break;
 
     case SIGTERM:
+        PsWatcher::getInstance()->Stop();
         //LOG_WARN("SIGTERM received, exiting");
         break;
 
     case SIGINT:
+        PsWatcher::getInstance()->Stop();
         //LOG_WARN("SIGINT received, exiting");
         break;
 

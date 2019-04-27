@@ -103,7 +103,7 @@ void PsWatcher::OnTimer(uv_timer_t *handle)
             if (( r = uv_spawn(uv_default_loop(), m_process, &m_options))) {
                 fprintf(stderr, "error:start app%s\n", uv_strerror(r));
             } else {
-                fprintf(stdout, "start running\n");
+                //fprintf(stdout, "start running\n");
             }
         }
     }else {
