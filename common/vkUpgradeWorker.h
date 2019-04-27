@@ -22,7 +22,7 @@ public:
 private:
     static void DoWorkCb(uv_work_t *req);
     static void AfterWorkCb(uv_work_t *req, int status);
-    static void CheckPermission(const char* filename, unsigned int mode);
+    static int CheckPermission(const char* filename, unsigned int mode);
     static int  DownloadFile(const char *pCurl,const char* pFilePath);
     static uv_work_t *m_worker;
     static int m_curl_global_init_rc;

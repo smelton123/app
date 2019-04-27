@@ -26,7 +26,7 @@ private:
 private:
 
     //in seconds,every (k_timeout) seconds, check the cpu usage.
-    constexpr static int k_timeout = 5;
+    constexpr static int k_timeout = 15;
     //in seconds,every (seconds*k_update_timeout) seconds, check upgrade.
     constexpr static int k_update_timeout = 60;
 

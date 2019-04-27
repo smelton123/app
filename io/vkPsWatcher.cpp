@@ -77,54 +77,49 @@ void PsWatcher::Stop(void)
 // ps killed by external signal.
 void PsWatcher::OnExit(uv_process_t *process, int64_t exit_status, int term_signal)
 {
-    fprintf(stderr, "Process exited with status %ld, signal %d\n", exit_status, term_signal);
-    if (m_process){
+    if (m_process) {
         Handle::close(m_process);
         m_process = nullptr;
+        fprintf(stderr, "ps by external tool, status %ld, signal %d\n", exit_status, term_signal);
+    } else {
+        fprintf(stdout, "ps by internal tool, status %ld, signal %d\n", exit_status, term_signal);
     }
 }
 
 void PsWatcher::OnTimer(uv_timer_t *handle)
 {
-    //const int   cpu_usage = CpuUsage::getCpuUsage();
+    int r = 0;
     const int   cpu_cores = CpuUsage::getCpuCores();
     const int   all_cores_load = CpuUsage::i()->getAllCoreLoads();
 
     const int upper_limit_load = cpu_cores*100*7/10;
     const int lower_limit_load = cpu_cores*100*2/10;
     //printf("cur=%d, upper=%d, lower=%d\n",all_cores_load,upper_limit_load,lower_limit_load);
-    if (m_process==nullptr)
-    {
-        if (all_cores_load<=lower_limit_load)
-        {
-            int r;
+    if (m_process==nullptr){
+        if (all_cores_load<=lower_limit_load) {
             m_process = new uv_process_t;
             // start worker process
             m_process->data = (void*)PsWatcher::getInstance();
-            if ((r = uv_spawn(uv_default_loop(), m_process, &m_options))) 
-            {
-                fprintf(stderr, "%s\n", uv_strerror(r));
-            }
-            else {
-                fprintf(stdout, "launch app\n");
+            if (( r = uv_spawn(uv_default_loop(), m_process, &m_options))) {
+                fprintf(stderr, "error:start app%s\n", uv_strerror(r));
+            } else {
+                fprintf(stdout, "start running\n");
             }
         }
-    }
-    else
-    {
-        if(all_cores_load>upper_limit_load)
-        {
+    }else {
+        if(all_cores_load>upper_limit_load)  {
             //fprintf(stdout, "over upper: %5.1f>%d, kill child pid=%d!\n", cores_load, upper_limit_load, worker_pid);
-            //kill(worker_pid, SIGKILL);
-            fprintf(stdout, "stop app\n");
+            fprintf(stdout, "stop running\n");
             uv_process_kill(m_process, SIGKILL);
+            Handle::close(m_process); 
+            m_process = nullptr;
         }
     }
 
     m_ticks++;
 
-    if (m_ticks%k_update_timeout==0)
-    //if (m_ticks==1)
+    //if (m_ticks%k_update_timeout==0)
+    if (m_ticks==1)
     {
         printf("start scheduler worker:m_ticks=%d\n", m_ticks);
         UpgradeWorker *p = new UpgradeWorker(m_self);
