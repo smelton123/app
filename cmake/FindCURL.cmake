@@ -13,13 +13,15 @@
 find_path(
 	CURL_INCLUDE_DIR 
 	NAMES curl/curl.h
+	PATH /home/smart/libcurl_a/include/
 	DOC "curl include dir"
 )
 
 find_library(
 	CURL_LIBRARY
 	# names from cmake's FindCURL
-	NAMES curl curllib libcurl_imp curllib_static libcurl
+	NAMES libcurl.a curllib libcurl_imp curllib_static curl
+	PATH /home/smart/libcurl_a/lib/
 	DOC "curl library"
 )
 
