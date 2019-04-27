@@ -2,8 +2,8 @@
 #define __VERSION_HEADER__
 
 
-#define APP_NAME      "App"
-#define APP_VERSION   "2.14.1"
+#define APP_NAME      "app"
+#define APP_VERSION   "9.0.1"
 
 #ifdef _MSC_VER
 #   if (_MSC_VER >= 1910)

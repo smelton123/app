@@ -7,11 +7,25 @@
 
 int main(int argc, char **argv)
 {
-    App app;
+    // check app version info!
+    if ((argc == 2))
+    {
+        if (strcmp(argv[1],"--info")==0)
+            Summary::printVersions();
+        
+        return 0;       
+    }
+    else if(argc>2)
+    {
+        return 0;
+    }
+    else
+    {
+        App app;
+        return app.exec();
+    }
     
-    Summary::printVersions();
-
-    return app.exec();
+    return 0;
 }
 
 
