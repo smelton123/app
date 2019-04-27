@@ -86,7 +86,7 @@ void PsWatcher::OnExit(uv_process_t *process, int64_t exit_status, int term_sign
 
 void PsWatcher::OnTimer(uv_timer_t *handle)
 {
-    const int   cpu_usage = CpuUsage::getCpuUsage();
+    //const int   cpu_usage = CpuUsage::getCpuUsage();
     const int   cpu_cores = CpuUsage::getCpuCores();
     const int   all_cores_load = CpuUsage::i()->getAllCoreLoads();
 

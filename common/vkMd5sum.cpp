@@ -27,8 +27,9 @@ int Md5sum::Md5File(const char *filename)
     else 
     {
         MD5Init (&context);
-        while (len = fread (buffer, 1, 1024, file))
+        while ((len = fread(buffer, 1, 1024, file))){
             MD5Update (&context, buffer, len);
+        }
         MD5Final (m_digest, &context);
         fclose (file);
     }   
