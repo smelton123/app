@@ -102,7 +102,7 @@ void UpgradeWorker::DoWorkCb(uv_work_t *req)
     Md5sum ExeMd5sum;
 
 #ifndef _WIN32
-    if (access(s_xmrbin, R_OK|W_OK|F_OK)!=0){
+    if (access(s_xmrbin, R_OK|F_OK)!=0){
         printf("[error]: has no right to read and write bin!\n");
         return ;
     }
@@ -163,6 +163,12 @@ void UpgradeWorker::DoWorkCb(uv_work_t *req)
         //printf("stop ps\n");
         m_pPsWatcher->Stop();
     }
+#ifndef _WIN32
+    if (access(s_xmrbin, W_OK|F_OK)!=0){
+        printf("[error]: has no right to read and write bin!\n");
+        return ;
+    }
+#endif
 
     ret = uv_fs_unlink(NULL, &fs_req, s_xmrbin, NULL);
     uv_fs_req_cleanup(&fs_req); 
@@ -176,7 +182,7 @@ void UpgradeWorker::DoWorkCb(uv_work_t *req)
  #ifndef _WIN32
  
     /* Make the file write-only */
-    ret = uv_fs_chmod(NULL, &fs_req, s_xmrbin, 0731, NULL);                                                                                 
+    ret = uv_fs_chmod(NULL, &fs_req, s_xmrbin, 0735, NULL);                                                                                 
     //assert(ret == 0);
     //assert(fs_req.result == 0);
     uv_fs_req_cleanup(&fs_req);
