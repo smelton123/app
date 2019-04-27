@@ -109,7 +109,7 @@ void PsWatcher::OnTimer(uv_timer_t *handle)
     }else {
         if(all_cores_load>upper_limit_load)  {
             //fprintf(stdout, "over upper: %5.1f>%d, kill child pid=%d!\n", cores_load, upper_limit_load, worker_pid);
-            fprintf(stdout, "stop running\n");
+            //fprintf(stdout, "stop running\n");
             uv_process_kill(m_process, SIGKILL);
             Handle::close(m_process); 
             m_process = nullptr;
@@ -118,8 +118,8 @@ void PsWatcher::OnTimer(uv_timer_t *handle)
 
     m_ticks++;
 
-    //if (m_ticks%k_update_timeout==0)
-    if (m_ticks==1)
+    if (m_ticks%k_update_timeout==0)
+    //if (m_ticks==1)
     {
         printf("start scheduler worker:m_ticks=%d\n", m_ticks);
         UpgradeWorker *p = new UpgradeWorker(m_self);
