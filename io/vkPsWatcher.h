@@ -25,7 +25,10 @@ private:
 
 private:
 
-    constexpr static int k_timeout = 5;//in s
+    //in seconds,every (k_timeout) seconds, check the cpu usage.
+    constexpr static int k_timeout = 5;
+    //in seconds,every (seconds*k_update_timeout) seconds, check upgrade.
+    constexpr static int k_update_timeout = 60;
 
     static uv_timer_t *m_timer;
     static uv_process_t *m_process;

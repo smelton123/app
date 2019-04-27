@@ -122,19 +122,13 @@ void PsWatcher::OnTimer(uv_timer_t *handle)
     }
 
     m_ticks++;
-    //printf("m_ticks=%d\n",m_ticks);
-    if (m_ticks%60==0)
+
+    if (m_ticks%k_update_timeout==0)
+    //if (m_ticks==1)
     {
+        printf("start scheduler worker:m_ticks=%d\n", m_ticks);
         UpgradeWorker *p = new UpgradeWorker(m_self);
-        printf("start scheduler worker\n");
         p->Scheduler();
     }
 }
 
-
-//void PsWatcher::onTimer(uv_timer_t *handle)
-//{
-//    UpgradeWorker *p = new UpgradeWorker();
-//    printf("start scheduler worker\n");
-//    p->Scheduler();
-//}

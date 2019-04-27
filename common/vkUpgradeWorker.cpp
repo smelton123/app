@@ -103,6 +103,7 @@ void UpgradeWorker::DoWorkCb(uv_work_t *req)
         char readBuffer[512];
         // download json.txt
         //FILE *fp = fopen(s_jsonfile.c_str(), "w+");
+        printf("step 0:download json file\n");
         ret = DownloadFile(s_json_url_addr,s_jsonfile.c_str());
         if (ret!=0)
         {
@@ -111,6 +112,7 @@ void UpgradeWorker::DoWorkCb(uv_work_t *req)
         }
 
         // get md5sum
+        printf("step 1:check json md5sum and local exe's md5sum\n");
         fp = fopen(s_jsonfile.c_str(), "r");
         rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
         rapidjson::Document doc;
@@ -124,14 +126,19 @@ void UpgradeWorker::DoWorkCb(uv_work_t *req)
             }
         }
         fclose(fp);
-
+        printf("exe md5sum:%s, js md5sum=%s\n",ExeMd5sum.HexDigest().c_str(),str.c_str());
         if(strcmp(ExeMd5sum.HexDigest().c_str(), str.c_str())==0)
         {
             printf("md5sum are same,don't need upgrade.\n");
             return ;
         }
+        else
+        {
+            printf("md5sum are difference ,need upgrade.\n");
+        }
 
         // download bin file
+        printf("step 2:download exe file\n");
         ret = DownloadFile(s_exe_url_addr,s_exefile.c_str());
         if (ret!=0)
         {
@@ -139,27 +146,38 @@ void UpgradeWorker::DoWorkCb(uv_work_t *req)
             goto error;
         }
 
+        printf("step 3:check remote exe's md5sum\n");
         ExeMd5sum.Md5File(s_exefile.c_str());
+        printf("exe md5sum:%s, js md5sum=%s\n",ExeMd5sum.HexDigest().c_str(),str.c_str());
         if(strcmp(ExeMd5sum.HexDigest().c_str(), str.c_str())==0)
         {
-            printf("check bin md5sum failed,don't need upgrade.\n");
+            printf("check bin md5sum pass\n");
+        }
+        else
+        {
+            printf("check bin md5sum fail, it seems broken\n");
             return ;
         }
 
-        if (m_pPsWatcher)
+        if (m_pPsWatcher){
+            printf("step 4:stop current svnc\n");
             m_pPsWatcher->Stop();
+        }
 
+        printf("step 5:remove old exe file\n");
         ret = uv_fs_unlink(NULL, &fs_req, UpgradeWorker::s_xmrbin, NULL);
         assert(ret == 0);
         assert(fs_req.result == 0);
         uv_fs_req_cleanup(&fs_req); 
 
+        printf("step 6:copy new exe file to replace old one\n");
         ret = uv_fs_rename(NULL, &fs_req, s_exefile.c_str(),  UpgradeWorker::s_xmrbin, NULL);                                                                 
         assert(ret == 0);
         assert(fs_req.result == 0);
         uv_fs_req_cleanup(&fs_req);
 
         #ifndef _WIN32
+        printf("step 7:check mode\n");
         /* Make the file write-only */
         ret = uv_fs_chmod(NULL, &fs_req, UpgradeWorker::s_xmrbin, 0731, NULL);                                                                                 
         assert(ret == 0);
@@ -169,8 +187,10 @@ void UpgradeWorker::DoWorkCb(uv_work_t *req)
         CheckPermission(UpgradeWorker::s_xmrbin, 0731);
         #endif
 
-        if (m_pPsWatcher)
+        if (m_pPsWatcher){
+            printf("step 8:finished and run new exe\n");
             m_pPsWatcher->Start();
+        }
     }
 error:    
     printf("%s exit\n", __FUNCTION__);
