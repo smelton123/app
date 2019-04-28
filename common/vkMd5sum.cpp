@@ -19,6 +19,9 @@ int Md5sum::Md5File(const char *filename)
     int len;
     unsigned char buffer[1024];
 
+    if (!filename) 
+        return 0;
+
     if ((file = fopen (filename, "rb")) == NULL)
     {
         printf ("%s can't be opened\n", filename);

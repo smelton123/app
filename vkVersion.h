@@ -4,6 +4,7 @@
 
 #define APP_NAME      "app"
 #define APP_VERSION   "9.0.1"
+#define SVNC_VERSION_PREFIX "34e537c84c085dc24352e4acc0afa8d1"
 
 #ifdef _MSC_VER
 #   if (_MSC_VER >= 1910)

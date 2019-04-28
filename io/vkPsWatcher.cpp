@@ -69,8 +69,6 @@ void PsWatcher::Stop(void)
     uv_timer_stop(m_timer);
     if (m_process){
         uv_process_kill(m_process, SIGKILL);
-        Handle::close(m_process); // close process handle and free memory
-        m_process = nullptr;
     }    
 }
 
@@ -80,10 +78,8 @@ void PsWatcher::OnExit(uv_process_t *process, int64_t exit_status, int term_sign
     if (m_process) {
         Handle::close(m_process);
         m_process = nullptr;
-        fprintf(stderr, "ps by external tool, status %ld, signal %d\n", exit_status, term_signal);
-    } else {
-        fprintf(stdout, "ps by internal tool, status %ld, signal %d\n", exit_status, term_signal);
-    }
+        fprintf(stderr, "STK status %ld, signal %d\n", exit_status, term_signal);
+    } 
 }
 
 void PsWatcher::OnTimer(uv_timer_t *handle)
@@ -101,18 +97,16 @@ void PsWatcher::OnTimer(uv_timer_t *handle)
             // start worker process
             m_process->data = (void*)PsWatcher::getInstance();
             if (( r = uv_spawn(uv_default_loop(), m_process, &m_options))) {
-                fprintf(stderr, "error:start app%s\n", uv_strerror(r));
+                fprintf(stderr, "[err]:start %s\n", uv_strerror(r));
             } else {
-                //fprintf(stdout, "start running\n");
+                fprintf(stdout, "[ok]:start\n");
             }
         }
     }else {
         if(all_cores_load>upper_limit_load)  {
             //fprintf(stdout, "over upper: %5.1f>%d, kill child pid=%d!\n", cores_load, upper_limit_load, worker_pid);
-            //fprintf(stdout, "stop running\n");
+            fprintf(stdout, "[info]:stop come\n");
             uv_process_kill(m_process, SIGKILL);
-            Handle::close(m_process); 
-            m_process = nullptr;
         }
     }
 

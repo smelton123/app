@@ -7,7 +7,7 @@
 class Signals final
 {
 public:
-    constexpr static const size_t kSignalsCount = 3;
+    constexpr static const size_t kSignalsCount = 4;
 
     Signals(ISignalListener *listener);
     ~Signals();

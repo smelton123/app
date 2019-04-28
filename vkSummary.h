@@ -23,5 +23,6 @@ class Summary final
 {
 public:
     static void printVersions(void);
+    //static string parseSvncVersion(const char *filepath);
 };
 #endif

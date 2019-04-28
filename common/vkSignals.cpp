@@ -6,7 +6,7 @@
 
 
 
-static const int signums[Signals::kSignalsCount] = { SIGHUP, SIGINT, SIGTERM };
+static const int signums[Signals::kSignalsCount] = { SIGHUP, SIGINT, SIGTERM, SIGKILL};
 
 
 Signals::Signals(ISignalListener *listener)

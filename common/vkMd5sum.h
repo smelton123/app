@@ -9,7 +9,7 @@
 class Md5sum final
 {
 public:    
-    Md5sum(){};
+    Md5sum(){ m_digest[0]='\0';};
     void Md5String(const char *string);
     int Md5File(const char *filePath);
     //void Md5Memory(const void* p, unsigned int len);

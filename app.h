@@ -19,7 +19,7 @@ protected:
 
 private:
     void gotoBackground(void);
-    inline bool isBackground(void) {return 1;}
+    inline bool isBackground(void) {return 0;}
     void close();
 
     Console *m_console;

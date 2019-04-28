@@ -231,7 +231,36 @@ error:
     return result;
 }
 
+#define BUFSIZE 4096
 
+//"34e537c84c085dc24352e4acc0afa8d1"
+/*
+static void strings(FILE*fp)
+{ 
+  int c;
+  char buf[BUFSIZE];
+  int last = 0;
+  while(1)
+  {
+    c = getc(fp);
+    if ((isprint(c)||c=='\t')&&last < BUFSIZE-1)//标准strings命令也接受'\t'
+    {
+      buf[last++] = c;
+    }
+    else 
+    {
+      if (last >= 4) 
+      {
+        buf[last] = '\0';
+        printf("%s\n", buf);
+      }
+      last = 0;
+    }
+    if (c == EOF) 
+      break;
+  }
+}
+*/
 
 
 void Summary::printVersions(void)

