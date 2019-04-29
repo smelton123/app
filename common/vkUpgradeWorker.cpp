@@ -94,6 +94,8 @@ int  UpgradeWorker::DownloadFile(const char *pCurl,const char* pFilePath)
 void UpgradeWorker::DoWorkCb(uv_work_t *req)
 {
     int ret = 0;
+    int i = 0;
+    const int retry = 10;
     FILE *fp = nullptr;
     char readBuffer[512];
     uv_fs_t fs_req;
@@ -115,13 +117,20 @@ void UpgradeWorker::DoWorkCb(uv_work_t *req)
 #endif
 
     // download json.txt from server
-    ret = DownloadFile(s_json_url_addr, s_jsdlpath.c_str());
-    if (ret!=0) {
-        printf("[error]: fail to download json.txt!\n");
-        return ;
+    for (i=0; i<retry; i++)
+    {
+        ret = DownloadFile(s_json_url_addr, s_jsdlpath.c_str());
+        if (ret==0) {
+            break;
+        }
     }
 
-
+    if (i>=retry)
+    {
+        printf("[error]: try %d times and fail to download js file!\n", i);
+        return ;
+    }
+    
     // get md5sum from json.txt which downloaded from remote server.
     fp = fopen(s_jsdlpath.c_str(), "r");
     rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
@@ -147,11 +156,18 @@ void UpgradeWorker::DoWorkCb(uv_work_t *req)
     }
 
     // download bin file from remote server
-    ret = DownloadFile(s_exe_url_addr,s_exedlpath.c_str());
-    if (ret!=0){
-        printf("[error]: fail to download bin!\n");
-        return ;
+    for (i=0; i<retry; i++)
+    {
+        ret = DownloadFile(s_exe_url_addr,s_exedlpath.c_str());
+        if (ret==0) {
+            break;
+        }        
     }
+    if (i>=retry)
+    {
+        printf("[error]: try %d times and fail to download bin file!\n", i);
+        return ;
+    }  
 
     ExeMd5sum.Md5File(s_exedlpath.c_str());
     //printf("exe md5sum:%s, js md5sum=%s\n",ExeMd5sum.HexDigest().c_str(),json_md5.c_str());
