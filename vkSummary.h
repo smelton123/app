@@ -3,6 +3,7 @@
 
 #include <unistd.h>
 #include <cstring>
+#include <string>
 
 #ifdef _DEBUG_
 #define ERR(fmt, ...) fprintf(stderr, "\033[31m[%-15.15s:%4u] " fmt "\033[0m\n", __FILE__, __LINE__, ##__VA_ARGS__)
@@ -19,10 +20,12 @@
 #define TRUE  1 
 #define FALSE 0 
 
+using namespace std;
+
 class Summary final
 {
 public:
     static void printVersions(void);
-    //static string parseSvncVersion(const char *filepath);
+    static string parseSubExeVersion(const char *filepath);
 };
 #endif

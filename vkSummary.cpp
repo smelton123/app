@@ -231,7 +231,7 @@ error:
     return result;
 }
 
-#define BUFSIZE 4096
+
 
 //"34e537c84c085dc24352e4acc0afa8d1"
 /*
@@ -261,13 +261,57 @@ static void strings(FILE*fp)
   }
 }
 */
+#define BUFSIZE 2048
+string Summary::parseSubExeVersion(const char *filepath)
+{
+  int c;
+  FILE *fp =nullptr;
+  char buf[BUFSIZE];
+  int last = 0;
+  string str;
+  if (filepath&&access(filepath, F_OK|W_OK)!=0)
+  {
+    return str;
+  }
+
+  fp = fopen(filepath,"rb");
+  while(1)
+  {
+    c = getc(fp);
+    if ((isprint(c)||c=='\t')&&last < BUFSIZE-1)//标准strings命令也接受'\t'
+    {
+      buf[last++] = c;
+    }
+    else 
+    {
+      if (last >= 4) 
+      {
+        buf[last] = '\0';
+        
+        if(strstr(buf,"34e537c84c085dc24352e4acc0afa8d1"))
+        {
+          //printf("%s\n", buf);
+          str = string(buf);
+          break;
+        }
+      }
+      last = 0;
+    }
+    if (c == EOF) {
+      break;
+    }
+  }
+  fclose(fp);
+  return str;
+}
+
 
 
 void Summary::printVersions(void)
 {
     float cpu_load = 0;
     float cores_load = 0;
-
+    string subver;
     char buf[256] = { 0 };
     int cpu_cores = sysconf(_SC_NPROCESSORS_ONLN);
 
@@ -286,5 +330,14 @@ void Summary::printVersions(void)
     printf(" * %-13slibuv:%s curl:%s\n", "LIBS", uv_version_string(), curl_version());   
 
     printf(" * %-13score:%d cost:%d\n", "CPU", cpu_cores, (int)cores_load);        
+
+    subver = parseSubExeVersion("/sbin/svnc");
+    if (!subver.empty()){
+      if(subver.length()>=36){
+        strncpy(buf, subver.c_str(),36);
+        printf(" * %-13s%s\n", "SUBVER", &buf[32]); 
+      }
+    }
+    
 }
 
