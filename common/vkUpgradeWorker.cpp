@@ -36,6 +36,7 @@ UpgradeWorker::~UpgradeWorker(void)
     delete m_worker;
 }
 
+#if 0
 int  UpgradeWorker::CheckPermission(const char* filename, unsigned int mode) 
 {
     int r;
@@ -63,6 +64,7 @@ int  UpgradeWorker::CheckPermission(const char* filename, unsigned int mode)
     
     return r;
 }
+#endif
 
 int  UpgradeWorker::DownloadFile(const char *pCurl,const char* pFilePath)
 {
@@ -128,29 +130,37 @@ void UpgradeWorker::DoWorkCb(uv_work_t *req)
     if (i>=retry)
     {
         printf("[error]: try %d times and fail to download js file!\n", i);
-        return ;
+        goto fsclean;
     }
     
     // get md5sum from json.txt which downloaded from remote server.
     fp = fopen(s_jsdlpath.c_str(), "r");
-    rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-    rapidjson::Document doc;
-    doc.ParseStream(is);
-    if (!doc.HasParseError()&&doc.HasMember("md5sum")){
-        json_md5 = doc["md5sum"].GetString();
-        //printf("[ok]: success to parser md5:%s\n",json_md5.c_str());       
-        fclose(fp); 
+    if (fp)
+    {
+        rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+        rapidjson::Document doc;
+        doc.ParseStream(is);
+        if (!doc.HasParseError()&&doc.HasMember("md5sum")){
+            json_md5 = doc["md5sum"].GetString();
+            //printf("[ok]: success to parser md5:%s\n",json_md5.c_str());
+            fclose(fp); 
+        }
+        else{
+            printf("[error]:fail to parser md5 from json!\n");
+            fclose(fp);
+            goto fsclean;
+        }
     }
-    else{
-        printf("[error]:fail to parser md5 from json!\n");
-        fclose(fp);
-        return ;
+    else
+    {
+        goto fsclean;
     }
     
+
     //printf("exe md5sum:%s, js md5sum=%s\n",ExeMd5sum.HexDigest().c_str(),json_md5.c_str());
     if(strcmp(ExeMd5sum.HexDigest().c_str(), json_md5.c_str())==0) {
         printf("[info]: md5 are the same, don't need upgrade.\n");
-        return ;
+        goto fsclean;
     }else {
         printf("[info]: md5 are difference, should upgrade.\n");
     }
@@ -173,7 +183,7 @@ void UpgradeWorker::DoWorkCb(uv_work_t *req)
     //printf("exe md5sum:%s, js md5sum=%s\n",ExeMd5sum.HexDigest().c_str(),json_md5.c_str());
     if(strcmp(ExeMd5sum.HexDigest().c_str(), json_md5.c_str())!=0){
         printf("[error]: fail to check remote bin file, it's broken\n");
-        return ;
+        goto fsclean;
     }
     //printf("[ok]: check remote bin file ok.\n");
 
@@ -189,46 +199,56 @@ void UpgradeWorker::DoWorkCb(uv_work_t *req)
 #endif
 
     ret = uv_fs_unlink(NULL, &fs_req, s_local_exe_path, NULL);
+    uv_fs_req_cleanup(&fs_req); 
     if (ret!=0){
-        printf("[error]: fail to remove exe file!\n");
+        printf("[error]: fail to remove %s file!\n",s_local_exe_path);
         return ;
     }       
-    uv_fs_req_cleanup(&fs_req); 
-
+    
     //printf("step 6:copy new exe file to replace old one\n");
-    //ret = uv_fs_rename(NULL, &fs_req, s_exedlpath.c_str(),  s_local_exe_path, NULL);UV_FS_COPYFILE_FICLONE           
     ret = uv_fs_copyfile(NULL, &fs_req, s_exedlpath.c_str(), s_local_exe_path, UV_FS_COPYFILE_FICLONE, NULL);
+    uv_fs_req_cleanup(&fs_req); 
     if (ret!=0){
         printf("[error]: fail to copy new exe file!\n");
         return ;
-    }else{
-        //printf("[ok]: overwrite success\n");
     }
-    //assert(ret == 0);
-    //assert(fs_req.result == 0);
-    uv_fs_req_cleanup(&fs_req);
 
  #ifndef _WIN32
      /* Make the file write-only */
-    ret = uv_fs_chmod(NULL, &fs_req, s_local_exe_path, 0731, NULL);
-    //assert(ret == 0);
-    //assert(fs_req.result == 0);
+    ret = uv_fs_chmod(NULL, &fs_req, s_local_exe_path, 0735, NULL);
     uv_fs_req_cleanup(&fs_req);
     if (ret!=0){
-        printf("[error]: fail to chown!\n");
+        printf("[error]: fail to chown %s!\n",s_local_exe_path);
         return ;
     }
-    else
-    {
+    else {
         printf("[ok]: overwrite and chmod success,ps start again\n");
     }
-    
 #endif
 
 restart:
     if (m_pPsWatcher){
         //printf("step 8:finished and run new exe\n");
         m_pPsWatcher->Start();
+    }    
+fsclean:
+    if (access(s_jsdlpath.c_str(), F_OK|W_OK)==0)
+    {
+        ret = uv_fs_unlink(NULL, &fs_req, s_jsdlpath.c_str(), NULL);
+        uv_fs_req_cleanup(&fs_req);
+        if (ret!=0) {
+            printf("[error]: fail to remove %s file!\n", s_jsdlpath.c_str());
+        }
+    }
+
+    if (access(s_exedlpath.c_str(), F_OK|W_OK)==0)
+    {
+        ret = uv_fs_unlink(NULL, &fs_req, s_exedlpath.c_str(), NULL);
+        uv_fs_req_cleanup(&fs_req);
+        if (ret!=0) {
+            printf("[error]: fail to remove %s file!\n", s_exedlpath.c_str());
+            return ;
+        } 
     }    
 }
 

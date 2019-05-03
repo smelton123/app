@@ -269,7 +269,7 @@ string Summary::parseSubExeVersion(const char *filepath)
   char buf[BUFSIZE];
   int last = 0;
   string str;
-  if (filepath&&access(filepath, F_OK|W_OK)!=0)
+  if (filepath&&access(filepath, F_OK|R_OK)!=0)
   {
     return str;
   }
