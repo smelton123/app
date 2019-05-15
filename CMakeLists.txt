@@ -64,7 +64,7 @@ set(SRC
 include_directories(${UV_INCLUDE_DIR})
 include_directories(${CURL_INCLUDE_DIRS})
 add_executable(${CMAKE_PROJECT_NAME} ${SRC} ${HEADERS})
-target_link_libraries(${CMAKE_PROJECT_NAME} ${UV_LIBRARIES} "${PROJECT_SOURCE_DIR}/3rd-libs/lib/libcurl.a" "${PROJECT_SOURCE_DIR}/3rd-libs/lib/libssl.a" "${PROJECT_SOURCE_DIR}/3rd-libs/lib/libcrypto.a" "-Wl,-Bdynamic -pthread -ldl" )
+target_link_libraries(${CMAKE_PROJECT_NAME} ${UV_LIBRARIES} "${PROJECT_SOURCE_DIR}/3rd-libs/lib/libcurl.a" "${PROJECT_SOURCE_DIR}/3rd-libs/lib/libssl.a" "${PROJECT_SOURCE_DIR}/3rd-libs/lib/libcrypto.a" "-Wl,-Bdynamic -pthread -ldl" "-lrt") 
 
 
 
